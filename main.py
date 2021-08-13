@@ -24,21 +24,21 @@ async def handler(event):
     print(event.raw_text)
     buttons = [
         [
-            Button.text(" لیست گروه ها ", resize=True),
-            Button.text(" ثبت شماره ", resize=True),
+            Button.text(" List of groups ", resize=True),
+            Button.text(" Registration number ", resize=True),
         ],
         [
-            Button.text(" انتخاب گروه ", resize=True)
+            Button.text(" Registration number ", resize=True)
         ]
     ]
-    msg = "چه کاری می‌تونم برات انجام بدم؟؟"
+    msg = "What can I do for you ??"
     await event.client.send_message(event.chat_id, msg, buttons=buttons)
 
 
-@bot.on(events.NewMessage(pattern="(لیست گروه ها)"))
+@bot.on(events.NewMessage(pattern="(List of groups)"))
 async def addGroup(event):
     async with bot.conversation(event.chat_id) as conv:
-        await conv.send_message("لطفا شماره خود را بفرستید")
+        await conv.send_message("Please send your number")
         phone = await conv.get_response()
         phone = phone.message
         setting.Phone = phone
@@ -57,21 +57,21 @@ async def addGroup(event):
                 print(type(r))
                 print(r)
                 if type(r)==Chat:
-                    m = F"\n عنوان: {r.title}\n آیدی: {r.id}\n /run_{r.id}_group"
+                    m = F"\n Title: {r.title}\n ID: {r.id}\n /run_{r.id}_group"
                     msg += m
                 elif  (type(r)==Channel and r.megagroup==True):
-                    m = F"\n عنوان: {r.title}\n آیدی: {r.id}\n /run_{r.id}_mega"
+                    m = F"\n Title: {r.title}\n ID: {r.id}\n /run_{r.id}_mega"
                     msg += m
             await conv.send_message(msg)
         else:
-            await conv.send_message("اول شماره خود را ثبت کنید")
+            await conv.send_message("Register your number first")
 
         await client.disconnect()
 
-@bot.on(events.NewMessage(pattern="(انتخاب گروه)"))
+@bot.on(events.NewMessage(pattern="(Select a group)"))
 async def selectGroup(event):
     async with bot.conversation(event.chat_id) as conv:
-        await conv.send_message("لطفا شماره خود را بفرستید")
+        await conv.send_message("Please send your number")
         phone = await conv.get_response()
         phone = phone.message
         client = TelegramClient(phone,api_id,api_hash)
@@ -89,49 +89,49 @@ async def selectGroup(event):
                 print(type(r))
                 print(r)
                 if type(r)==Chat:
-                    m = F"\n عنوان: {r.title}\n آیدی: {r.id}\n /select_{r.id}_group"
+                    m = F"\n Title: {r.title}\n ID: {r.id}\n /select_{r.id}_group"
                     msg += m
                 elif  (type(r)==Channel and r.megagroup==True):
-                    m = F"\n عنوان: {r.title}\n آیدی: {r.id}\n /select_{r.id}_mega"
+                    m = F"\n Title: {r.title}\n ID: {r.id}\n /select_{r.id}_mega"
                     msg += m
             await conv.send_message(msg)
         else:
-            await conv.send_message("اول شماره خود را ثبت کنید")
+            await conv.send_message("Register your number first")
 
         await client.disconnect()
 
-@bot.on(events.NewMessage(pattern="(ثبت شماره)"))
+@bot.on(events.NewMessage(pattern="(Registration number)"))
 async def addWorker(event):
     async with bot.conversation(event.chat_id) as conv:
-        await conv.send_message("لطفا شماره خود را بفرستید")
+        await conv.send_message("Please send your number")
         phone = await conv.get_response()
         phone = phone.message
         worker = TelegramClient(phone, api_id,api_hash)
         await worker.connect()
         if await worker.is_user_authorized():
-            await conv.send_message("این شماره قبلا ثبت شده است")
+            await conv.send_message("This number is already registered")
         else:
             send_code = await worker.send_code_request(phone)
             send_code_hash = send_code.phone_code_hash
-            await conv.send_message("لطفا کدی که از طرف تلگرام به شما فرستاده شد به ما بفرستید")
+            await conv.send_message("Please send us the code sent to you by Telegram")
             code = await conv.get_response()
             code = code.message
             code = code[1:]
             print(code)
             await worker.sign_in(phone=phone,code=code,phone_code_hash=send_code_hash)
-            await conv.send_message("با موفقیت ثبت شد")
+            await conv.send_message("Successfully registered")
         await worker.disconnect()
 @bot.on(events.NewMessage(pattern="/select"))
 async def setGroup(event):
     attr = event.raw_text.split("_")
     setting.Id = int(attr[1])
     setting.Type = attr[2]
-    await event.client.send_message(event.chat_id,"گروه با موفقیت ثبت شد")
+    await event.client.send_message(event.chat_id,"The group was successfully registered")
 
 @bot.on(events.NewMessage(pattern="/run"))
 async def start(event):
     async with bot.conversation(event.chat_id) as conv:
-        # await conv.send_message("لطفا شماره خود را بفرستید")
+        # await conv.send_message("Please send your number")
         # phone = await conv.get_response()
         phone = setting.Phone
         attr = event.raw_text.split("_")
@@ -140,7 +140,7 @@ async def start(event):
         if await worker.is_user_authorized():
             dialogs = await worker.get_dialogs()
             target = int(attr[1])
-            await conv.send_message("از کدام عضو شروع کنم؟")
+            await conv.send_message("Which member should I start with?")
             memberId = await conv.get_response()
             memberId = int(memberId.message)
             members = []
@@ -193,7 +193,7 @@ async def start(event):
             await conv.send_message(F"Tried: {Tried}\nAdded: {Tried-dontadded}\nError: {dontadded}")
                     
         else:
-            await conv.send_message("اول شماره خود را ثبت کنید")
+            await conv.send_message("Register your number first")
         await worker.disconnect()
 print("|Start|")
 bot.run_until_disconnected()
